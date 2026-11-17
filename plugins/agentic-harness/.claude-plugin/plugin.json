@@ -1,0 +1,18 @@
+{
+  "name": "agentic-harness",
+  "version": "1.0.0",
+  "description": "Crea agentes de IA con LangChain/LangGraph, modelos de Anthropic y trazas en Langfuse: skills, subagentes, hooks de seguridad y MCP de documentación.",
+  "author": {
+    "name": "rcronald"
+  },
+  "keywords": [
+    "agents",
+    "langchain",
+    "langgraph",
+    "langfuse",
+    "anthropic"
+  ],
+  "homepage": "https://github.com/rcronald/agentic-harness",
+  "repository": "https://github.com/rcronald/agentic-harness",
+  "license": "MIT"
+}

@@ -1,0 +1,63 @@
+# CI del plugin agentic-harness: hooks, manifiestos y esqueleto de agente de punta a punta.
+name: plugin-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hooks-y-manifiestos:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Manifiestos JSON válidos
+        run: |
+          for f in .claude-plugin/marketplace.json \
+                   plugins/agentic-harness/.claude-plugin/plugin.json \
+                   plugins/agentic-harness/hooks/hooks.json \
+                   plugins/agentic-harness/.mcp.json \
+                   plugins/agentic-harness/templates/project/.claude/settings.json; do
+            jq -e . "$f" >/dev/null && echo "ok $f"
+          done
+      - name: Versión coherente y documentada en CHANGELOG
+        run: bash scripts/check-version.sh
+      - name: Skills con frontmatter
+        run: |
+          for f in plugins/agentic-harness/skills/*/SKILL.md; do
+            head -1 "$f" | grep -qx -- '---' && grep -q '^name:' "$f" && grep -q '^description:' "$f" \
+              || { echo "frontmatter incompleto: $f"; exit 1; }
+          done
+      - name: Pruebas de hooks, init y scaffold
+        run: bash scripts/test-hooks.sh
+
+  esqueleto:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      HISTORY_TEST_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          # El repositorio no tiene uv.lock: el esqueleto se instala en un proyecto temporal.
+          enable-cache: false
+      - name: Esqueleto de punta a punta (init, scaffold, ruff, pytest, Postgres)
+        run: bash scripts/test-skeleton.sh

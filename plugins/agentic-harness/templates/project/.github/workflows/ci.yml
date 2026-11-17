@@ -1,0 +1,56 @@
+# CI del proyecto de agentes. Toda la lógica vive en scripts/ci.sh; este archivo solo lo ejecuta.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      evals:
+        description: "Ejecutar pruebas de integración y evaluaciones (llama al modelo real, cuesta dinero)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+      - name: Lint, formato y pruebas unitarias
+        run: bash scripts/ci.sh
+
+  evals:
+    # Solo bajo demanda: Actions > ci > Run workflow > evals = true.
+    if: github.event_name == 'workflow_dispatch' && inputs.evals
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: evals  # protege los secretos con reglas de aprobación si lo configuras
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+      LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+      LANGFUSE_BASE_URL: ${{ vars.LANGFUSE_BASE_URL }}
+      APP_ENV: ci
+      APP_RELEASE: ${{ github.sha }}
+      AGENT_DRY_RUN: "true"
+      EVAL_MIN_SCORE: ${{ vars.EVAL_MIN_SCORE || '0.8' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+      - name: Integración y evaluaciones
+        run: bash scripts/ci.sh --evals

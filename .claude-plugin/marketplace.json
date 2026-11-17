@@ -1,0 +1,19 @@
+{
+  "name": "agentic-harness",
+  "owner": {
+    "name": "rcronald"
+  },
+  "metadata": {
+    "description": "Harness para crear agentes de IA con LangChain/LangGraph, Claude y Langfuse.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "agentic-harness",
+      "description": "Skills, subagentes, hooks y MCP de documentación para crear agentes con LangChain/LangGraph, Claude y Langfuse.",
+      "version": "1.0.0",
+      "source": "./plugins/agentic-harness",
+      "license": "MIT"
+    }
+  ]
+}

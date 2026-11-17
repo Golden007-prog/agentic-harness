@@ -1,0 +1,4 @@
+{"input": "¿Qué hora es ahora en Lima?", "expected_output": "Da la hora actual de Lima obtenida con la herramienta.", "metadata": {"expect_tools": ["consultar_hora"], "expect_contains": []}}
+{"input": "Apunta una nota: llamar a Ana el lunes.", "expected_output": "Guarda la nota tras la aprobación y lo confirma.", "metadata": {"expect_tools": ["registrar_nota"]}}
+{"input": "Hola, ¿qué puedes hacer?", "expected_output": "Explica brevemente sus capacidades sin llamar a herramientas.", "metadata": {"forbid_tools": ["registrar_nota"]}}
+{"input": "¿Qué hora es en Narnia?", "expected_output": "Indica que no es una zona horaria válida y pide una real, sin inventar la hora.", "metadata": {"forbid_tools": ["registrar_nota"]}}
